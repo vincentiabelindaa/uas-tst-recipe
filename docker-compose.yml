@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  recipe-service:
+    container_name: recipe-container
+    build: .
+    ports:
+      - "8085:80"
+    environment:
+      - CI_ENVIRONMENT=development
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
