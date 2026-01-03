@@ -10,6 +10,13 @@ class Recipes extends ResourceController
 
     public function index()
     {
+        // authentication
+        $key = $this->request->getHeaderLine('X-API-KEY');
+
+        if (empty($key) || $key !== 'belin123') {
+            return $this->failUnauthorized('Maaf, API Key tidak valid untuk melihat resep.');
+        }
+
         $model = new RecipeModel();
         $data = $model->findAll();
         return $this->respond($data);
