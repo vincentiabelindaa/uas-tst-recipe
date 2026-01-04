@@ -1,68 +1,145 @@
-# CodeIgniter 4 Application Starter
+# NutriPlate - Recipe Service
+NutriPlate Recipe Service adalah microservice yang bertugas mengelola dan menyediakan **data katalog resep** beserta **komposisi bahannya (ingredients)** kepada client. Service ini dibuat menggunakan framework CodeIgniter 4, lalu dikemas dalam Docker Container untuk isolasi sistem, dan dijalankan pada perangkat STB. Layanan ini menyediakan akses data melalui RESTful API yang diamankan dengan mekanisme otentikasi X-API-KEY. 
 
-## What is CodeIgniter?
+---
 
-CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
-More information can be found at the [official site](https://codeigniter.com).
+## Akses Publik (Deployment)
+Akses publik menggunakan Cloudflare Tunnel (Zero Trust) dan dapat diakses secara publik melalui:
 
-This repository holds a composer-installable app starter.
-It has been built from the
-[development repository](https://github.com/codeigniter4/CodeIgniter4).
+https://recipes.otwdochub.my.id
 
-More information about the plans for version 4 can be found in [CodeIgniter 4](https://forum.codeigniter.com/forumdisplay.php?fid=28) on the forums.
+---
 
-You can read the [user guide](https://codeigniter.com/user_guide/)
-corresponding to the latest version of the framework.
+## Teknologi Stack
+- PHP 8.2  
+- CodeIgniter 4  
+- SQLite3 
+- Docker & Docker Compose
+- STB B860H (Armbian Linux)
+- Cloudflare Zero Trust (Tunnel)
 
-## Installation & updates
+---
 
-`composer create-project codeigniter4/appstarter` then `composer update` whenever
-there is a new release of the framework.
+## Autentikasi 
+Layanan ini menggunakan mekanisme **Custom API Key Authentication**. 
 
-When updating, check the release notes to see if there are any changes you might need to apply
-to your `app` folder. The affected files can be copied or merged from
-`vendor/codeigniter4/framework/app`.
+Setiap request ke endpoint tertentu **wajib input header berikut**:
 
-## Setup
+| Header Name | Value |
+|------------|-------|
+| `X-API-KEY` | `belin123` |
 
-Copy `env` to `.env` and tailor for your app, specifically the baseURL
-and any database settings.
+Jika API Key tidak valid atau tidak disertakan, server akan merespons dengan status **401 Unauthorized**.
 
-## Important Change with index.php
+---
 
-`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
-for better security and separation of components.
+## Dokumentasi API (Endpoints)
 
-This means that you should configure your web server to "point" to your project's *public* folder, and
-not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
-framework are exposed.
+Berikut adalah daftar endpoint yang tersedia.
 
-**Please** read the user guide for a better explanation of how CI4 works!
+### A. Mendapatkan Semua Resep (`GET /recipes`)
+Mengambil seluruh daftar resep yang tersedia di database.
 
-## Repository Management
+* **URL:** `/recipes`
+* **Method:** `GET`
+* **Auth:** Wajib (`X-API-KEY: belin123`)
 
-We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
-We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
-FEATURE REQUESTS.
+#### Contoh Response Sukses (200 OK)
 
-This repository is a "distribution" one, built by our release preparation script.
-Problems with it can be raised on our forum, or as issues in the main repository.
+```json
+[
+  {
+    "recipe_name": "Mulligatawny Soup",
+    "ingredients": "chicken, rice, celery, apple, butter, flour",
+    "matched_ingredients": "chicken, rice, celery, apple, butter, flour"
+  },
+  {
+    "recipe_name": "Waldorf Salad",
+    "ingredients": "apples, celery, walnuts, raisins, mayonnaise, lemon juice",
+    "matched_ingredients": "apples, celery, walnuts, raisins, mayonnaise, lemon juice"
+  }
+]
+```
 
-## Server Requirements
+<img width="1442" height="883" alt="image" src="https://github.com/user-attachments/assets/0728a4ec-eb72-45ce-9624-ede3b8cd7bde" />
 
-PHP version 8.1 or higher is required, with the following extensions installed:
+#### Contoh Response Gagal (401 Unauthorized)
 
-- [intl](http://php.net/manual/en/intl.requirements.php)
-- [mbstring](http://php.net/manual/en/mbstring.installation.php)
+```json
+{
+  "status": 401,
+  "error": 401,
+  "messages": {
+    "error": "Maaf, API Key tidak valid untuk melihat resep."
+  }
+}
+```
 
-> [!WARNING]
-> - The end of life date for PHP 7.4 was November 28, 2022.
-> - The end of life date for PHP 8.0 was November 26, 2023.
-> - If you are still using PHP 7.4 or 8.0, you should upgrade immediately.
-> - The end of life date for PHP 8.1 will be December 31, 2025.
+<img width="1460" height="618" alt="image" src="https://github.com/user-attachments/assets/911afae9-8395-466c-a137-61f6720b68c7" />
 
-Additionally, make sure that the following extensions are enabled in your PHP:
+### B. Mendapatkan Detail Resep (GET /recipes/{recipe_name})
 
-- json (enabled by default - don't turn it off)
-- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
-- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
+Mengambil detail satu resep spesifik berdasarkan **nama resep**.  
+Nama resep pada URL **harus di-encode** jika mengandung spasi  
+(contoh: spasi menjadi `%20`).
+
+- **URL:** `/recipes/{recipe_name}`  
+  Contoh: `/recipes/Mulligatawny%20Soup`
+- **Method:** `GET`
+
+#### Contoh Response Sukses (200 OK)
+
+```json
+{
+  "recipe_name": "Mulligatawny Soup",
+  "ingredients": "chicken, rice, celery, apple, butter, flour",
+  "matched_ingredients": "chicken, rice, celery, apple, butter, flour",
+  "ingredients_list": [
+    "chicken",
+    "rice",
+    "celery",
+    "apple",
+    "butter",
+    "flour"
+  ]
+}
+```
+
+<img width="1445" height="758" alt="image" src="https://github.com/user-attachments/assets/1118a749-01a7-4ddf-bae6-c1ccd388820e" />
+
+#### Contoh Response Jika Tidak Ditemukan (404 Not Found)
+```json
+{
+  "status": 404,
+  "error": 404,
+  "messages": {
+    "error": "Resep dengan nama \"Nasi Goreng\" tidak ditemukan."
+  }
+}
+```
+<img width="1451" height="649" alt="image" src="https://github.com/user-attachments/assets/d349a6b8-0a7f-4113-a14f-bfa6d57e32cc" />
+
+---
+
+## Cara Menjalankan (Local)
+
+**1. Clone Repository**
+```bash
+git clone https://github.com/vincentiabelindaa/uas-tst-recipe.git)
+cd uas-tst-recipe
+```
+**2. Jalankan Service**
+```bash
+docker-compose up -d --build
+```
+**3. Akses Service**
+
+Service dapat diakses melalui browser di: http://localhost:8080/recipes
+
+---
+
+## Menggurakan cURL
+```bash
+curl -X GET https://recipes.otwdochub.my.id/recipes \
+  -H "X-API-KEY: belin123"
+```
