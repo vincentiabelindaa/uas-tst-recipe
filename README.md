@@ -138,7 +138,7 @@ Service dapat diakses melalui browser di: http://localhost:8080/recipes
 
 ---
 
-## Menggurakan cURL
+## Menggunakan cURL
 ```bash
 curl -X GET https://recipes.otwdochub.my.id/recipes \
   -H "X-API-KEY: belin123"
