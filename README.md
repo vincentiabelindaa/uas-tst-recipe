@@ -125,7 +125,7 @@ Nama resep pada URL **harus di-encode** jika mengandung spasi
 
 **1. Clone Repository**
 ```bash
-git clone https://github.com/vincentiabelindaa/uas-tst-recipe.git)
+git clone https://github.com/vincentiabelindaa/uas-tst-recipe.git
 cd uas-tst-recipe
 ```
 **2. Jalankan Service**
